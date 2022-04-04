@@ -20,16 +20,21 @@ const CountryCard: FunctionComponent<CountryCardProperties> = ({ country }) => {
           <div className="ml-3 flex flex-col">
             <span className="text-lg font-medium">{country.name?.common}</span>
 
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {country.name?.official}
             </span>
           </div>
         </div>
-        <div className="flex items-center">
-          <span className="font-medium">
-            Population:{country.population?.toLocaleString()}
+        {country.unMember && (
+          <span className="text-sm bg-orange-100 rounded-3xl p-1 whitespace-nowrap">
+            UN Member
           </span>
-        </div>
+        )}
+      </div>
+      <div className="flex items-center py-2">
+        <span className="font-medium">
+          Population:{country.population?.toLocaleString()}
+        </span>
       </div>
 
       {/* <button

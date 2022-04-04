@@ -1,9 +1,10 @@
 import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
-
-import { ApiCountry } from "../lib/types";
+import { ChangeEvent, useState } from "react";
+import Container from "../components/Container";
 import CountryCard from "../components/CountryCard";
+import Search from "../components/Search";
+import { ApiCountry } from "../lib/types";
 
 export type CountriesProps = {
   countries: readonly ApiCountry[];
@@ -11,9 +12,7 @@ export type CountriesProps = {
 function Home({ countries }: CountriesProps) {
   const router = useRouter();
   const { isFallback } = useRouter();
-  const [state, setState] = useState({
-    unMember: false,
-  });
+  const [search, setSearch] = useState("");
 
   //Check if every country has cca3
   const countryHasCca3 = () => {
@@ -27,50 +26,78 @@ function Home({ countries }: CountriesProps) {
     return true;
   };
 
+  //todo change for link
   const onClick = (countryId: string) => {
     router.push(`/${countryId.toLowerCase()}`);
   };
+
+  const onChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const value = event.target.value;
+    setSearch(value);
+  };
+
+  const filterBySearch = countries.filter((item) => {
+    const parsedName = item.name?.common.toLowerCase();
+    const parsedSearch = search.toLowerCase();
+
+    return parsedName?.includes(parsedSearch);
+  });
 
   if (isFallback) {
     return "Loading ...";
   }
 
-  const filterUnMember = countries.filter((c) => c.unMember);
-
   return (
-    <>
-      <h1>{countries.length} countries!!</h1>
-      <button onClick={() => setState({ ...state, unMember: !state.unMember })}>
-        click
-      </button>
+    <Container>
+      <div className="h-full">
+        {/* header */}
+        <div className="pb-6">
+          <div className="h-[260px] bg-blue-700 flex items-center justify-center px-2">
+            <h1 className="text-white font-bold text-4xl sm:text-7xl text-center">
+              Where to next?
+            </h1>
+            <div className="flex justify-start w-64 h-">
+              <img
+                className="w-full w-full object-contain"
+                src="/pngwing.com.png"
+                alt="Cartoon with a guy stepping on a map"
+              />
+            </div>
+          </div>
 
-      <ul
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        }}
-      >
-        {state.unMember
-          ? filterUnMember?.map((country: ApiCountry) => (
-              <li
-                key={country.cca3}
-                onClick={() => onClick(country.cca3)}
-                className="hover:bg-blue-100 cursor-pointer"
-              >
-                <CountryCard country={country} />
-              </li>
-            ))
-          : countries?.map((country: ApiCountry) => (
-              <li
-                key={country.cca3}
-                onClick={() => onClick(country.cca3)}
-                className="hover:bg-blue-100 cursor-pointer"
-              >
-                <CountryCard country={country} />
-              </li>
-            ))}
-      </ul>
-    </>
+          <div className="-mt-8 px-4">
+            <div className="-mx-1 flex bg-orange-500 rounded-lg items-center justify-center py-4 ">
+              <div className="bg-white w-full mx-4 rounded-md text-center py-2">
+                <Search
+                  id="search-country"
+                  onChange={(event) => onChange(event)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* end header */}
+
+        <ul
+          className="w-full h-[calc(100%_-_260px)] grid grid-cols-1 sm:grid-cols-2 overflow-y-auto mb-20 gap-2"
+          // style={{
+          //   display: "grid",
+          //   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          //   width: "100%",
+          // }}
+        >
+          {filterBySearch?.map((country: ApiCountry) => (
+            <li
+              key={country.cca3}
+              onClick={() => onClick(country.cca3)}
+              className="hover:bg-blue-100 cursor-pointer"
+            >
+              <CountryCard country={country} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Container>
   );
 }
 
@@ -91,7 +118,6 @@ export const getStaticProps: GetStaticProps = async () => {
       unMember: country.unMember,
     };
   });
-  console.log(allCountries[0]);
 
   const countries = JSON.parse(JSON.stringify(allCountries));
   return {
