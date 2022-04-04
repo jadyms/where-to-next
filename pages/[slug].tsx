@@ -2,6 +2,7 @@ import { GetStaticPaths, GetStaticProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import BorderingComponent from "../components/BorderingComponent";
+import Container from "../components/Container";
 import CountryDetailsComponent from "../components/CountryDetailsComponent";
 import { ApiCountry } from "../lib/types";
 
@@ -19,7 +20,7 @@ function CountryDetails({ country, bordering }: ApiProps) {
   const currentCountry = country[0];
 
   return (
-    <div className="w-screen">
+    <div className="overflow-y-auto overflow-x-hidden w-full">
       <Link href={"/"} passHref={true}>
         <a
           className="text-lg font-medium"
@@ -32,17 +33,28 @@ function CountryDetails({ country, bordering }: ApiProps) {
       </Link>
       <CountryDetailsComponent currentCountry={currentCountry} />
 
-      <h1 className="font-medium text-lg">Bordering</h1>
-      <div
-        className="gap-2"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        }}
-      >
-        {bordering.length === 0 && <h1>No neighbours</h1>}
-        {bordering.length > 0 &&
-          bordering?.map((borderCountry) => (
+      <div className="bg-gray-100 my-2 py-2">
+        <h1 className="font-medium text-lg text-blue-700 text-center">
+          Bordering countries
+        </h1>
+      </div>
+
+      {bordering.length === 0 && (
+        <div className="w-full my-2">
+          <h1 className="font-medium text-lg text-center">No data found</h1>
+        </div>
+      )}
+
+      {/* TODO no data molecule */}
+      {bordering.length > 0 && (
+        <div
+          className="gap-2 grid grid-cols-1 sm:grid-cols-3"
+          // style={{
+          //   display: "grid",
+          //   gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+          // }}
+        >
+          {bordering?.map((borderCountry) => (
             <div
               key={borderCountry.cca3}
               style={{ width: "100%", height: "100%" }}
@@ -51,7 +63,8 @@ function CountryDetails({ country, bordering }: ApiProps) {
               <BorderingComponent borderCountry={borderCountry} />
             </div>
           ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

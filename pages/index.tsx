@@ -53,9 +53,22 @@ function Home({ countries }: CountriesProps) {
         {/* header */}
         <div className="pb-6">
           <div className="h-[260px] bg-blue-700 flex items-center justify-center px-2">
-            <h1 className="text-white font-bold text-4xl sm:text-7xl text-center">
-              Where to next?
-            </h1>
+            <div className="flex flex-col text-white items-center">
+              <h1 className=" font-bold text-4xl sm:text-7xl text-center">
+                Where to next?
+              </h1>
+              <span className="pt-2">
+                Using the{" "}
+                <a
+                  className="cursor-pointer hover:text-orange-200 underline"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  href="https://restcountries.com/#rest-countries"
+                >
+                  Rest Countries API
+                </a>
+              </span>
+            </div>
             <div className="flex justify-start w-64 h-">
               <img
                 className="w-full w-full object-contain"
@@ -67,7 +80,7 @@ function Home({ countries }: CountriesProps) {
 
           <div className="-mt-8 px-4">
             <div className="-mx-1 flex bg-orange-500 rounded-lg items-center justify-center py-4 ">
-              <div className="bg-white w-full mx-4 rounded-md text-center py-2">
+              <div className="bg-white w-full mx-4 rounded-md text-center">
                 <Search
                   id="search-country"
                   onChange={(event) => onChange(event)}
