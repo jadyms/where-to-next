@@ -1,7 +1,9 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ApiCountry, Currency, Language } from "../lib/types";
+import BorderingComponent from "../components/BorderingComponent";
+import CountryDetailsComponent from "../components/CountryDetailsComponent";
+import { ApiCountry } from "../lib/types";
 
 type ApiProps = {
   country: ApiCountry[];
@@ -16,71 +18,23 @@ function CountryDetails({ country, bordering }: ApiProps) {
   }
   const currentCountry = country[0];
 
-  const languages =
-    currentCountry?.languages &&
-    Object.keys(currentCountry.languages).reduce((next, key) => {
-      next.push({ code: key, name: currentCountry.languages[key] });
-      return next;
-    }, [] as Language[]);
-
-  const currenciesId = currentCountry?.currencies
-    ? Object.keys(currentCountry.currencies)
-    : [];
-  const hasCurrency = currenciesId.length > 0;
-
-  const currencies: Currency[] | null = hasCurrency
-    ? currenciesId.map((id) => {
-        return {
-          name: currentCountry.currencies[id]?.name,
-          symbol: currentCountry?.currencies[id]?.symbol,
-        };
-      })
-    : null;
-
   return (
-    <>
+    <div className="w-screen">
       <Link href={"/"} passHref={true}>
-        <h1
+        <a
+          className="text-lg font-medium"
           style={{
             cursor: "pointer",
           }}
         >
           Back to results
-        </h1>
+        </a>
       </Link>
+      <CountryDetailsComponent currentCountry={currentCountry} />
 
+      <h1 className="font-medium text-lg">Bordering</h1>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        }}
-      >
-        <div
-          key={currentCountry.cca3}
-          style={{ width: "100%", height: "100%" }}
-        >
-          <h1>{currentCountry.name?.common}</h1>
-          <p>{currentCountry.population}</p>
-          <p>{currentCountry.flag}</p>
-
-          {currentCountry.capital?.map((i) => (
-            <p key={i[0]}>Capital: {i}</p>
-          ))}
-          {languages &&
-            languages.map((i) => <p key={i.code}>Languages:{i.name}</p>)}
-          {currencies &&
-            currencies.map((i) => (
-              <div key={i.name} className="flex flex-row">
-                Currencies:
-                <p>{i.name}</p>
-                <p>{i.symbol}</p>
-              </div>
-            ))}
-        </div>
-      </div>
-
-      <h1>Bordering</h1>
-      <div
+        className="gap-2"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
@@ -88,21 +42,17 @@ function CountryDetails({ country, bordering }: ApiProps) {
       >
         {bordering.length === 0 && <h1>No neighbours</h1>}
         {bordering.length > 0 &&
-          bordering?.map((c) => (
-            <div key={c.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
-                onClick={() => router.push(`/${c.cca3.toLowerCase()}`)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
-              >
-                <h1>{c?.name?.common}</h1>
-                <p>{c.population}</p>
-                <p>{c.flag}</p>
-              </button>
+          bordering?.map((borderCountry) => (
+            <div
+              key={borderCountry.cca3}
+              style={{ width: "100%", height: "100%" }}
+              className="shadow-sm hover:bg-blue-100 border border-gray-100 p-2 rounded-md"
+            >
+              <BorderingComponent borderCountry={borderCountry} />
             </div>
           ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -160,6 +110,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       population: c.population,
       languages: c.languages,
       borders: c.borders ?? [],
+      flags: c.flags,
     };
   });
 
@@ -181,9 +132,14 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
         const result = json.map((item: ApiCountry) => {
           return {
             cca3: item.cca3,
-            name: item.name,
             flag: item.flag,
+            name: item.name,
+            capital: item.capital ?? [],
+            currencies: item.currencies,
             population: item.population,
+            languages: item.languages,
+            borders: item.borders ?? [],
+            flags: item.flags,
           };
         });
 
