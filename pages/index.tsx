@@ -1,7 +1,8 @@
 import type { GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { ChangeEvent, useState } from "react";
-import Container from "../components/Container";
+// import Container from "../components/Container";
+import { Container } from "../components/styled/Container.styled";
 import CountryCard from "../components/CountryCard";
 import Search from "../components/Search";
 import { ApiCountry } from "../lib/types";
