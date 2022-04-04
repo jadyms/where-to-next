@@ -17,7 +17,7 @@ export type ApiCountry = {
     readonly common: string;
     readonly official: string;
     readonly nativeName: {
-      readonly spa: {
+      readonly [key: string]: {
         readonly official: string;
         readonly common: string;
       };
@@ -25,6 +25,10 @@ export type ApiCountry = {
   };
   readonly population?: number;
   readonly flag?: ReactNode;
+  readonly flags?: {
+    readonly png: string;
+    readonly svg: string;
+  };
   readonly currencies?: {
     readonly [key: string]: {
       readonly name: string;

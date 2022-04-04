@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 import { ApiCountry } from "../lib/types";
+import CountryCard from "../components/CountryCard";
 
 export type CountriesProps = {
   countries: readonly ApiCountry[];
@@ -42,49 +43,33 @@ function Home({ countries }: CountriesProps) {
       <button onClick={() => setState({ ...state, unMember: !state.unMember })}>
         click
       </button>
-      {state.unMember ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          }}
-        >
-          {filterUnMember?.map((country: ApiCountry) => (
-            <div key={country.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
+
+      <ul
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        }}
+      >
+        {state.unMember
+          ? filterUnMember?.map((country: ApiCountry) => (
+              <li
+                key={country.cca3}
                 onClick={() => onClick(country.cca3)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
+                className="hover:bg-blue-100 cursor-pointer"
               >
-                <h1>{country?.name?.common}</h1>
-                <p>{country?.population}</p>
-                <p>{country?.flag}</p>
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          }}
-        >
-          {countries?.map((country: ApiCountry) => (
-            <div key={country.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
+                <CountryCard country={country} />
+              </li>
+            ))
+          : countries?.map((country: ApiCountry) => (
+              <li
+                key={country.cca3}
                 onClick={() => onClick(country.cca3)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
+                className="hover:bg-blue-100 cursor-pointer"
               >
-                <h1>{country?.name?.common}</h1>
-                <p>{country?.population}</p>
-                <p>{country?.flag}</p>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+                <CountryCard country={country} />
+              </li>
+            ))}
+      </ul>
     </>
   );
 }
@@ -100,11 +85,13 @@ export const getStaticProps: GetStaticProps = async () => {
       cca3: country.cca3,
       name: country.name,
       flag: country.flag,
+      flags: country.flags,
       population: country.population,
       capital: country.capital ?? [],
       unMember: country.unMember,
     };
   });
+  console.log(allCountries[0]);
 
   const countries = JSON.parse(JSON.stringify(allCountries));
   return {
