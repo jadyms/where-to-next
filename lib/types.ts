@@ -1,30 +1,41 @@
 import { ReactNode } from "react";
 
+export type Currency = {
+  readonly name: string;
+  readonly symbol: string;
+};
+
+export type Language = {
+  readonly code: string;
+  readonly name: string;
+};
+
 export type ApiCountry = {
-  cca3: string;
-  capital: [string];
-  name: {
-    common: string;
-    official: string;
-    nativeName: {
-      spa: {
-        official: string;
-        common: string;
+  readonly cca3: string;
+  readonly capital?: [string];
+  readonly name?: {
+    readonly common: string;
+    readonly official: string;
+    readonly nativeName: {
+      readonly spa: {
+        readonly official: string;
+        readonly common: string;
       };
     };
   };
-  population: number;
-  flag: ReactNode;
-  currencies: {
-    key: {
-      name: string;
-      symbol: string;
+  readonly population?: number;
+  readonly flag?: ReactNode;
+  readonly currencies?: {
+    readonly [key: string]: {
+      readonly name: string;
+      readonly symbol: string;
     };
   };
-  languages: {
-    spa: "Spanish";
+  readonly languages?: {
+    readonly [key: string]: string;
   };
-  borders?: [string];
+  readonly borders?: [string];
+  readonly unMember?: boolean;
 };
 
 [

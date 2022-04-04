@@ -1,7 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ApiCountry } from "../lib/types";
+import { ApiCountry, Currency, Language } from "../lib/types";
 
 type ApiProps = {
   country: ApiCountry[];
@@ -9,12 +9,33 @@ type ApiProps = {
 };
 
 function CountryDetails({ country, bordering }: ApiProps) {
-  const { isFallback } = useRouter();
+  const router = useRouter();
 
-  if (isFallback) {
+  if (router.isFallback) {
     return "Loading ...";
   }
   const currentCountry = country[0];
+
+  const languages =
+    currentCountry?.languages &&
+    Object.keys(currentCountry.languages).reduce((next, key) => {
+      next.push({ code: key, name: currentCountry.languages[key] });
+      return next;
+    }, [] as Language[]);
+
+  const currenciesId = currentCountry?.currencies
+    ? Object.keys(currentCountry.currencies)
+    : [];
+  const hasCurrency = currenciesId.length > 0;
+
+  const currencies: Currency[] | null = hasCurrency
+    ? currenciesId.map((id) => {
+        return {
+          name: currentCountry.currencies[id]?.name,
+          symbol: currentCountry?.currencies[id]?.symbol,
+        };
+      })
+    : null;
 
   return (
     <>
@@ -38,12 +59,23 @@ function CountryDetails({ country, bordering }: ApiProps) {
           key={currentCountry.cca3}
           style={{ width: "100%", height: "100%" }}
         >
-          <h1>{currentCountry.name.common}</h1>
+          <h1>{currentCountry.name?.common}</h1>
           <p>{currentCountry.population}</p>
           <p>{currentCountry.flag}</p>
-          <p>{currentCountry.capital[0]}</p>
-          <p>{currentCountry.currencies.key}</p>
-          <p>{currentCountry.languages.spa}</p>
+
+          {currentCountry.capital?.map((i) => (
+            <p key={i[0]}>Capital: {i}</p>
+          ))}
+          {languages &&
+            languages.map((i) => <p key={i.code}>Languages:{i.name}</p>)}
+          {currencies &&
+            currencies.map((i) => (
+              <div key={i.name} className="flex flex-row">
+                Currencies:
+                <p>{i.name}</p>
+                <p>{i.symbol}</p>
+              </div>
+            ))}
         </div>
       </div>
 
@@ -58,9 +90,15 @@ function CountryDetails({ country, bordering }: ApiProps) {
         {bordering.length > 0 &&
           bordering?.map((c) => (
             <div key={c.cca3} style={{ width: "100%", height: "100%" }}>
-              <h1>{c.name.common}</h1>
-              <p>{c.population}</p>
-              <p>{c.flag}</p>
+              <button
+                className="hover:bg-pink-100"
+                onClick={() => router.push(`/${c.cca3.toLowerCase()}`)}
+                style={{ width: "100%", height: "100%", cursor: "pointer" }}
+              >
+                <h1>{c?.name?.common}</h1>
+                <p>{c.population}</p>
+                <p>{c.flag}</p>
+              </button>
             </div>
           ))}
       </div>
@@ -78,6 +116,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
   const response = fetch(
     `https://restcountries.com/v3.1/alpha/${params.slug as string}`
   )
@@ -107,18 +150,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     };
   }
 
-  const country = data.map((c: ApiCountry) => {
+  const countries = data.map((c: ApiCountry) => {
     return {
       cca3: c.cca3,
       flag: c.flag,
       name: c.name,
-      capital: c.capital,
+      capital: c.capital ?? [],
       currencies: c.currencies,
       population: c.population,
       languages: c.languages,
-      borders: c.borders || [],
+      borders: c.borders ?? [],
     };
   });
+
+  const country = JSON.parse(JSON.stringify(countries));
 
   const borders = country[0]?.borders
     ? country[0].borders.map((item: string) => item.toLowerCase())
@@ -149,7 +194,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     return bordersDet;
   }
 
-  const bordering = await getChapters(borders);
+  const borderCountries = await getChapters(borders);
+  const bordering = JSON.parse(JSON.stringify(borderCountries));
 
   return {
     props: {
