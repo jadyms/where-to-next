@@ -39,6 +39,7 @@ const SearchInput: FunctionComponent<SearchProperties> = ({
       type={type}
       name={name}
       id={id}
+      data-testid={id}
       value={value}
       placeholder={placeholder}
       disabled={disabled}

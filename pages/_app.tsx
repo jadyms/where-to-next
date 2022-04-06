@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { ThemeProvider } from "styled-components";
 
-const theme = {
+export const theme = {
   colors: {
     yellow: "#ffa822",
     blue: "#134e6f",
