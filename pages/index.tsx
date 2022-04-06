@@ -49,7 +49,18 @@ function Home({ countries }: CountriesProps) {
   return (
     <Container>
       <Head>
+        <title>Where to next?</title>
         <link rel="icon" href="/world.png" />
+        <meta name="description" content={`Find the next country to visit`} />
+        <meta
+          property="og:title"
+          content={`Where to Next? Using the Rest Countries API`}
+        />
+        <meta
+          property="og:description"
+          content={`Find the next country to visit`}
+        />
+        <meta property="og:type" content="website" />
       </Head>
       <div className="h-full">
         <Banner onChange={onChange} />

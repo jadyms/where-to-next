@@ -29,10 +29,26 @@ function CountryDetails({ country, bordering }: ApiProps) {
   }
   const currentCountry = country[0];
 
+  const currentCountryName = currentCountry.name?.common;
+
   return (
     <Container>
       <Head>
+        <title>{currentCountryName} - Where to Next?</title>
         <link rel="icon" href="/world.png" />
+        <meta
+          name="description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta
+          property="og:title"
+          content={`${currentCountryName} - Where to next?`}
+        />
+        <meta
+          property="og:description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta property="og:type" content="website" />
       </Head>
       <div className="h-full">
         <Banner hasSearch={false} />
