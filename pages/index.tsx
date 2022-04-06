@@ -1,4 +1,5 @@
 import type { GetStaticProps } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, useState } from "react";
@@ -6,6 +7,7 @@ import Banner from "../components/Banner";
 import CountryCard from "../components/CountryCard";
 import { Container } from "../components/styled/Container.styled";
 import { ListGrid } from "../components/styled/ListGrid";
+import { Loading } from "../components/styled/Loading.styled";
 import { ApiCountry } from "../lib/types";
 
 export type CountriesProps = {
@@ -41,11 +43,14 @@ function Home({ countries }: CountriesProps) {
   });
 
   if (router.isFallback) {
-    return "Loading ...";
+    return <Loading />;
   }
 
   return (
     <Container>
+      <Head>
+        <link rel="icon" href="/world.png" />
+      </Head>
       <div className="h-full">
         <Banner onChange={onChange} />
 

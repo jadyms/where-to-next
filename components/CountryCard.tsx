@@ -47,4 +47,3 @@ const CountryCard: FunctionComponent<CountryCardProperties> = ({ country }) => {
   );
 };
 export default CardWrapped;
-// export default CountryCard;

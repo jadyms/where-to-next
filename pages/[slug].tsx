@@ -1,4 +1,5 @@
 import { GetStaticPaths, GetStaticProps } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Banner from "../components/Banner";
@@ -12,6 +13,7 @@ import {
   SubHeader,
 } from "../components/styled/CountryDetails.styled";
 import { ListGrid } from "../components/styled/ListGrid";
+import { Loading } from "../components/styled/Loading.styled";
 import { ApiCountry } from "../lib/types";
 
 type ApiProps = {
@@ -23,12 +25,15 @@ function CountryDetails({ country, bordering }: ApiProps) {
   const router = useRouter();
 
   if (router.isFallback) {
-    return "Loading ...";
+    return <Loading />;
   }
   const currentCountry = country[0];
 
   return (
     <Container>
+      <Head>
+        <link rel="icon" href="/world.png" />
+      </Head>
       <div className="h-full">
         <Banner hasSearch={false} />
         <div className="overflow-y-scroll overflow-x-hidden w-full h-full">
