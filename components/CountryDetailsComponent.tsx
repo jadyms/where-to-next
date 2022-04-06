@@ -1,5 +1,10 @@
 import React, { FunctionComponent } from "react";
 import { ApiCountry, Currency, Language } from "../lib/types";
+import {
+  CountryDetailsStyled,
+  Grid,
+  GridContent,
+} from "./styled/CountryDetails.styled";
 
 export type CountryCardProperties = {
   readonly currentCountry: ApiCountry;
@@ -10,7 +15,7 @@ const CountryDetailsComponent: FunctionComponent<CountryCardProperties> = ({
   const languages =
     currentCountry?.languages &&
     Object.keys(currentCountry.languages).reduce((next, key) => {
-      next.push({ code: key, name: currentCountry.languages[key] });
+      next.push({ code: key, name: currentCountry?.languages[key] });
       return next;
     }, [] as Language[]);
 
@@ -22,21 +27,18 @@ const CountryDetailsComponent: FunctionComponent<CountryCardProperties> = ({
   const currencies: Currency[] | null = hasCurrency
     ? currenciesId.map((id) => {
         return {
-          name: currentCountry.currencies[id]?.name,
+          name: currentCountry?.currencies[id]?.name,
           symbol: currentCountry?.currencies[id]?.symbol,
         };
       })
     : null;
   return (
-    <div
-      style={{ width: "100%", height: "100%" }}
-      className="border-gray-100 border rounded-md flex flex-col p-2 sm:mx-2 w-full justify-center items-center"
-    >
+    <CountryDetailsStyled>
       <img
-        className="rounded-md border-gray-100 border"
         src={currentCountry.flags?.png}
         alt={`${currentCountry.name?.common}-flag`}
       />
+
       {/* todo name atom */}
       <div className="flex flex-col items-center">
         <span className="text-lg font-medium">
@@ -48,17 +50,17 @@ const CountryDetailsComponent: FunctionComponent<CountryCardProperties> = ({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 py-5 w-full">
-        <div className="flex flex-col pt-2 sm:pt-0 items-center break-all">
+      <Grid>
+        <GridContent>
           <span className="text-sm text-gray-500 font-medium">Capital</span>
           {currentCountry.capital?.map((i) => (
             <span className="text-sm" key={i[0]}>
               {i}
             </span>
           ))}
-        </div>
+        </GridContent>
 
-        <div className="flex flex-col pt-2 sm:pt-0 items-center break-all">
+        <GridContent>
           <span className="text-sm text-gray-500 font-medium">Languages</span>
           {languages &&
             languages.map((i) => (
@@ -66,9 +68,9 @@ const CountryDetailsComponent: FunctionComponent<CountryCardProperties> = ({
                 {i.name}
               </span>
             ))}
-        </div>
+        </GridContent>
 
-        <div className="flex flex-col pt-2 sm:pt-0 items-center break-all">
+        <GridContent>
           <span className="text-sm text-gray-500 font-medium">Currencies</span>
           {currencies &&
             currencies.map((i) => (
@@ -76,9 +78,9 @@ const CountryDetailsComponent: FunctionComponent<CountryCardProperties> = ({
                 {i.name}
               </span>
             ))}
-        </div>
-      </div>
-    </div>
+        </GridContent>
+      </Grid>
+    </CountryDetailsStyled>
   );
 };
 export default CountryDetailsComponent;

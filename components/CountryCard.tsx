@@ -1,50 +1,50 @@
-import React, { FunctionComponent } from "react";
+import React, { forwardRef, FunctionComponent } from "react";
 import { ApiCountry } from "../lib/types";
+import {
+  CardBody,
+  CardContent,
+  CardHeader,
+  CountryCardStyled,
+  Pill,
+} from "./styled/CountryCard.styled";
+import { Detail } from "./styled/Detail.styled";
+import { Text } from "./styled/Text.styled";
+import { Title } from "./styled/Title.styled";
 
 export type CountryCardProperties = {
   readonly country: ApiCountry;
 };
+export type CardWrappedProperties = CountryCardProperties & {
+  href?: string;
+};
+
+// eslint-disable-next-line react/display-name
+const CardWrapped = forwardRef<any, CardWrappedProperties>(
+  ({ country, href }, ref) => (
+    <a ref={ref} href={href}>
+      <CountryCard country={country} />
+    </a>
+  )
+);
+
 const CountryCard: FunctionComponent<CountryCardProperties> = ({ country }) => {
   return (
-    <div
-      style={{ width: "100%", height: "100%" }}
-      className="border-gray-100 border rounded-md flex-col p-2"
-    >
-      <div className="flex w-full items-start justify-between">
-        <div className="flex">
-          <img
-            className="h-8 w-10 object-contain rounded-md"
-            src={country.flags?.png}
-            alt={`${country.name?.common}-flag`}
-          />
-          <div className="ml-3 flex flex-col">
-            <span className="text-lg font-medium">{country.name?.common}</span>
-
-            <span className="text-xs text-gray-500">
-              {country.name?.official}
-            </span>
+    <CountryCardStyled>
+      <CardBody>
+        <CardHeader>
+          <img src={country.flags?.png} alt={`${country.name?.common}-flag`} />
+          <div>
+            <Title>{country.name?.common}</Title>
+            <Text>{country.name?.official}</Text>
           </div>
-        </div>
-        {country.unMember && (
-          <span className="text-sm bg-orange-100 rounded-3xl p-1 whitespace-nowrap">
-            UN Member
-          </span>
-        )}
-      </div>
-      <div className="flex items-center py-2">
-        <span className="font-medium">
-          Population:{country.population?.toLocaleString()}
-        </span>
-      </div>
-
-      {/* <button
-        id="btn-details"
-        className="p-2 rounded-md bg-blue-600 hover:opacity-75 text-white"
-        onClick={() => onClick(country.cca3)}
-      >
-        Go to details
-      </button> */}
-    </div>
+        </CardHeader>
+        {country.unMember && <Pill>UN Member</Pill>}
+      </CardBody>
+      <CardContent>
+        <Detail>Population: {country.population?.toLocaleString()}</Detail>
+      </CardContent>
+    </CountryCardStyled>
   );
 };
-export default CountryCard;
+export default CardWrapped;
+// export default CountryCard;
