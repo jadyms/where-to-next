@@ -6,6 +6,7 @@ import { ChangeEvent, useState } from "react";
 import Banner from "../components/Banner";
 import CountryCard from "../components/CountryCard";
 import { Container } from "../components/styled/Container.styled";
+import { HomeContentContainer } from "../components/styled/HomePage.styled";
 import { ListGrid } from "../components/styled/ListGrid";
 import { Loading } from "../components/styled/Loading.styled";
 import { ApiCountry } from "../lib/types";
@@ -18,7 +19,9 @@ function Home({ countries }: CountriesProps) {
 
   const [search, setSearch] = useState("");
 
-  //Check if every country has cca3
+  //Check if every country has cca3 to use it as a country id
+  //If country does not have it, make a decision to use another id
+  //or remove from list - future implementation
   const countryHasCca3 = () => {
     const ids = countries.map((country) => country.cca3);
     const resSize = new Set(ids).size;
@@ -62,18 +65,19 @@ function Home({ countries }: CountriesProps) {
         />
         <meta property="og:type" content="website" />
       </Head>
-      <div className="h-full">
+      <div>
         <Banner onChange={onChange} />
-
-        <ListGrid>
-          {filterBySearch?.map((country: ApiCountry) => (
-            <li key={country.cca3}>
-              <Link href={`/${country.cca3.toLowerCase()}`} passHref>
-                <CountryCard country={country} />
-              </Link>
-            </li>
-          ))}
-        </ListGrid>
+        <HomeContentContainer>
+          <ListGrid>
+            {filterBySearch?.map((country: ApiCountry) => (
+              <li key={country.cca3}>
+                <Link href={`/${country.cca3.toLowerCase()}`} passHref>
+                  <CountryCard country={country} />
+                </Link>
+              </li>
+            ))}
+          </ListGrid>
+        </HomeContentContainer>
       </div>
     </Container>
   );

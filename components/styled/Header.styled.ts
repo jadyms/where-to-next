@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 export const Header = styled.div`
-  padding-bottom: 24px;
+  /* padding-bottom: 24px; */
 `;
 
 export const HeaderBannerWrapper = styled.div`
@@ -25,8 +25,6 @@ export const HeaderBanner = styled.div`
     line-height: 2.5rem /* 40px */;
     text-align: center;
 
-    /* padding-left: 10px; */
-
     @media (min-width: 640px) {
       font-size: 4.5rem /* 72px */;
       line-height: 1;
@@ -46,6 +44,7 @@ export const Subtitle = styled.span`
     &:hover {
       color: ${({ theme }) => theme.colors.orange};
       text-decoration-line: underline;
+      text-align: center;
     }
   }
 `;

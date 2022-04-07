@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import Banner from "../components/Banner";
 import CountryCard from "../components/CountryCard";
 import CountryDetailsComponent from "../components/CountryDetailsComponent";
+import { ContentContainer } from "../components/styled/DetailsPage.styled";
 import { Container } from "../components/styled/Container.styled";
 import {
   BackLink,
@@ -50,9 +51,9 @@ function CountryDetails({ country, bordering }: ApiProps) {
         />
         <meta property="og:type" content="website" />
       </Head>
-      <div className="h-full">
+      <div>
         <Banner hasSearch={false} />
-        <div className="overflow-y-scroll overflow-x-hidden w-full h-full">
+        <ContentContainer>
           <Link href={"/"} passHref={true}>
             <BackLink>
               <IconChevronLeft />
@@ -82,7 +83,7 @@ function CountryDetails({ country, bordering }: ApiProps) {
               ))}
             </ListGrid>
           )}
-        </div>
+        </ContentContainer>
       </div>
     </Container>
   );
