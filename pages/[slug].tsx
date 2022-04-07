@@ -1,9 +1,20 @@
 import { GetStaticPaths, GetStaticProps } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import BorderingComponent from "../components/BorderingComponent";
-import Container from "../components/Container";
+import Banner from "../components/Banner";
+import CountryCard from "../components/CountryCard";
 import CountryDetailsComponent from "../components/CountryDetailsComponent";
+import { ContentContainer } from "../components/styled/DetailsPage.styled";
+import { Container } from "../components/styled/Container.styled";
+import {
+  BackLink,
+  IconChevronLeft,
+  NoData,
+  SubHeader,
+} from "../components/styled/CountryDetails.styled";
+import { ListGrid } from "../components/styled/ListGrid";
+import { Loading } from "../components/styled/Loading.styled";
 import { ApiCountry } from "../lib/types";
 
 type ApiProps = {
@@ -15,57 +26,66 @@ function CountryDetails({ country, bordering }: ApiProps) {
   const router = useRouter();
 
   if (router.isFallback) {
-    return "Loading ...";
+    return <Loading />;
   }
   const currentCountry = country[0];
 
+  const currentCountryName = currentCountry.name?.common;
+
   return (
-    <div className="overflow-y-auto overflow-x-hidden w-full">
-      <Link href={"/"} passHref={true}>
-        <a
-          className="text-lg font-medium"
-          style={{
-            cursor: "pointer",
-          }}
-        >
-          Back to results
-        </a>
-      </Link>
-      <CountryDetailsComponent currentCountry={currentCountry} />
+    <Container>
+      <Head>
+        <title>{currentCountryName} - Where to Next?</title>
+        <link rel="icon" href="/world.png" />
+        <meta
+          name="description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta
+          property="og:title"
+          content={`${currentCountryName} - Where to next?`}
+        />
+        <meta
+          property="og:description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div>
+        <Banner hasSearch={false} />
+        <ContentContainer>
+          <Link href={"/"} passHref={true}>
+            <BackLink>
+              <IconChevronLeft />
+              Back to results
+            </BackLink>
+          </Link>
+          <CountryDetailsComponent currentCountry={currentCountry} />
 
-      <div className="bg-gray-100 my-2 py-2">
-        <h1 className="font-medium text-lg text-blue-700 text-center">
-          Bordering countries
-        </h1>
+          <SubHeader>
+            <h1>Bordering countries</h1>
+          </SubHeader>
+
+          {bordering.length === 0 && (
+            <NoData>
+              <h2>No data found</h2>
+            </NoData>
+          )}
+
+          {bordering.length > 0 && (
+            <ListGrid columns={3}>
+              {bordering?.map((borderCountry) => (
+                <div key={borderCountry.cca3}>
+                  <Link href={`/${borderCountry.cca3.toLowerCase()}`} passHref>
+                    <CountryCard country={borderCountry} />
+                  </Link>
+                </div>
+              ))}
+            </ListGrid>
+          )}
+        </ContentContainer>
       </div>
-
-      {bordering.length === 0 && (
-        <div className="w-full my-2">
-          <h1 className="font-medium text-lg text-center">No data found</h1>
-        </div>
-      )}
-
-      {/* TODO no data molecule */}
-      {bordering.length > 0 && (
-        <div
-          className="gap-2 grid grid-cols-1 sm:grid-cols-3"
-          // style={{
-          //   display: "grid",
-          //   gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          // }}
-        >
-          {bordering?.map((borderCountry) => (
-            <div
-              key={borderCountry.cca3}
-              style={{ width: "100%", height: "100%" }}
-              className="shadow-sm hover:bg-blue-100 border border-gray-100 p-2 rounded-md"
-            >
-              <BorderingComponent borderCountry={borderCountry} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    </Container>
   );
 }
 
@@ -137,10 +157,29 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     if (!borders) {
       return [];
     }
+
     const bordersDet = await Promise.all(
       borders.map(async (item) => {
-        const res = await fetch(`https://restcountries.com/v3.1/alpha/${item}`);
-        const json = await res.json();
+        const res = await fetch(`https://restcountries.com/v3.1/alpha/${item}`)
+          .then(async (response) => {
+            const isJson = response.headers
+              .get("content-type")
+              ?.includes("application/json");
+            const data = isJson ? await response.json() : null;
+
+            if (!response.ok) {
+              const error = (data && data.message) || response.status;
+              return Promise.reject(error);
+            }
+
+            return data;
+          })
+          .catch((error) => {
+            console.error("There was an error!", error);
+            return null;
+          });
+
+        const json = await res;
 
         const result = json.map((item: ApiCountry) => {
           return {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BackLink } from "../components/styled/CountryDetails.styled";
 import { Page404 } from "../components/styled/Page404.styled";
 
-export default function Custom404() {
+export default function Custom500() {
   return (
     <>
       <Head>
