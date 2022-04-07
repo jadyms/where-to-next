@@ -1,7 +1,21 @@
 import { GetStaticPaths, GetStaticProps } from "next";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ApiCountry, Currency, Language } from "../lib/types";
+import Banner from "../components/Banner";
+import CountryCard from "../components/CountryCard";
+import CountryDetailsComponent from "../components/CountryDetailsComponent";
+import { ContentContainer } from "../components/styled/DetailsPage.styled";
+import { Container } from "../components/styled/Container.styled";
+import {
+  BackLink,
+  IconChevronLeft,
+  NoData,
+  SubHeader,
+} from "../components/styled/CountryDetails.styled";
+import { ListGrid } from "../components/styled/ListGrid";
+import { Loading } from "../components/styled/Loading.styled";
+import { ApiCountry } from "../lib/types";
 
 type ApiProps = {
   country: ApiCountry[];
@@ -12,97 +26,66 @@ function CountryDetails({ country, bordering }: ApiProps) {
   const router = useRouter();
 
   if (router.isFallback) {
-    return "Loading ...";
+    return <Loading />;
   }
   const currentCountry = country[0];
 
-  const languages =
-    currentCountry?.languages &&
-    Object.keys(currentCountry.languages).reduce((next, key) => {
-      next.push({ code: key, name: currentCountry.languages[key] });
-      return next;
-    }, [] as Language[]);
-
-  const currenciesId = currentCountry?.currencies
-    ? Object.keys(currentCountry.currencies)
-    : [];
-  const hasCurrency = currenciesId.length > 0;
-
-  const currencies: Currency[] | null = hasCurrency
-    ? currenciesId.map((id) => {
-        return {
-          name: currentCountry.currencies[id]?.name,
-          symbol: currentCountry?.currencies[id]?.symbol,
-        };
-      })
-    : null;
+  const currentCountryName = currentCountry.name?.common;
 
   return (
-    <>
-      <Link href={"/"} passHref={true}>
-        <h1
-          style={{
-            cursor: "pointer",
-          }}
-        >
-          Back to results
-        </h1>
-      </Link>
+    <Container>
+      <Head>
+        <title>{currentCountryName} - Where to Next?</title>
+        <link rel="icon" href="/world.png" />
+        <meta
+          name="description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta
+          property="og:title"
+          content={`${currentCountryName} - Where to next?`}
+        />
+        <meta
+          property="og:description"
+          content={`Learn more about ${currentCountryName}`}
+        />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div>
+        <Banner hasSearch={false} />
+        <ContentContainer>
+          <Link href={"/"} passHref={true}>
+            <BackLink>
+              <IconChevronLeft />
+              Back to results
+            </BackLink>
+          </Link>
+          <CountryDetailsComponent currentCountry={currentCountry} />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        }}
-      >
-        <div
-          key={currentCountry.cca3}
-          style={{ width: "100%", height: "100%" }}
-        >
-          <h1>{currentCountry.name?.common}</h1>
-          <p>{currentCountry.population}</p>
-          <p>{currentCountry.flag}</p>
+          <SubHeader>
+            <h1>Bordering countries</h1>
+          </SubHeader>
 
-          {currentCountry.capital?.map((i) => (
-            <p key={i[0]}>Capital: {i}</p>
-          ))}
-          {languages &&
-            languages.map((i) => <p key={i.code}>Languages:{i.name}</p>)}
-          {currencies &&
-            currencies.map((i) => (
-              <div key={i.name} className="flex flex-row">
-                Currencies:
-                <p>{i.name}</p>
-                <p>{i.symbol}</p>
-              </div>
-            ))}
-        </div>
+          {bordering.length === 0 && (
+            <NoData>
+              <h2>No data found</h2>
+            </NoData>
+          )}
+
+          {bordering.length > 0 && (
+            <ListGrid columns={3}>
+              {bordering?.map((borderCountry) => (
+                <div key={borderCountry.cca3}>
+                  <Link href={`/${borderCountry.cca3.toLowerCase()}`} passHref>
+                    <CountryCard country={borderCountry} />
+                  </Link>
+                </div>
+              ))}
+            </ListGrid>
+          )}
+        </ContentContainer>
       </div>
-
-      <h1>Bordering</h1>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        }}
-      >
-        {bordering.length === 0 && <h1>No neighbours</h1>}
-        {bordering.length > 0 &&
-          bordering?.map((c) => (
-            <div key={c.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
-                onClick={() => router.push(`/${c.cca3.toLowerCase()}`)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
-              >
-                <h1>{c?.name?.common}</h1>
-                <p>{c.population}</p>
-                <p>{c.flag}</p>
-              </button>
-            </div>
-          ))}
-      </div>
-    </>
+    </Container>
   );
 }
 
@@ -160,6 +143,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       population: c.population,
       languages: c.languages,
       borders: c.borders ?? [],
+      flags: c.flags,
     };
   });
 
@@ -173,17 +157,41 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     if (!borders) {
       return [];
     }
+
     const bordersDet = await Promise.all(
       borders.map(async (item) => {
-        const res = await fetch(`https://restcountries.com/v3.1/alpha/${item}`);
-        const json = await res.json();
+        const res = await fetch(`https://restcountries.com/v3.1/alpha/${item}`)
+          .then(async (response) => {
+            const isJson = response.headers
+              .get("content-type")
+              ?.includes("application/json");
+            const data = isJson ? await response.json() : null;
+
+            if (!response.ok) {
+              const error = (data && data.message) || response.status;
+              return Promise.reject(error);
+            }
+
+            return data;
+          })
+          .catch((error) => {
+            console.error("There was an error!", error);
+            return null;
+          });
+
+        const json = await res;
 
         const result = json.map((item: ApiCountry) => {
           return {
             cca3: item.cca3,
-            name: item.name,
             flag: item.flag,
+            name: item.name,
+            capital: item.capital ?? [],
+            currencies: item.currencies,
             population: item.population,
+            languages: item.languages,
+            borders: item.borders ?? [],
+            flags: item.flags,
           };
         });
 

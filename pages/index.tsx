@@ -1,7 +1,14 @@
 import type { GetStaticProps } from "next";
+import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
-
+import { ChangeEvent, useState } from "react";
+import Banner from "../components/Banner";
+import CountryCard from "../components/CountryCard";
+import { Container } from "../components/styled/Container.styled";
+import { HomeContentContainer } from "../components/styled/HomePage.styled";
+import { ListGrid } from "../components/styled/ListGrid";
+import { Loading } from "../components/styled/Loading.styled";
 import { ApiCountry } from "../lib/types";
 
 export type CountriesProps = {
@@ -9,12 +16,12 @@ export type CountriesProps = {
 };
 function Home({ countries }: CountriesProps) {
   const router = useRouter();
-  const { isFallback } = useRouter();
-  const [state, setState] = useState({
-    unMember: false,
-  });
 
-  //Check if every country has cca3
+  const [search, setSearch] = useState("");
+
+  //Check if every country has cca3 to use it as a country id
+  //If country does not have it, make a decision to use another id
+  //or remove from list - future implementation
   const countryHasCca3 = () => {
     const ids = countries.map((country) => country.cca3);
     const resSize = new Set(ids).size;
@@ -26,80 +33,86 @@ function Home({ countries }: CountriesProps) {
     return true;
   };
 
-  const onClick = (countryId: string) => {
-    router.push(`/${countryId.toLowerCase()}`);
+  const onChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const value = event.target.value;
+    setSearch(value);
   };
 
-  if (isFallback) {
-    return "Loading ...";
+  const filterBySearch = countries.filter((item) => {
+    const parsedName = item.name?.common.toLowerCase();
+    const parsedSearch = search.toLowerCase();
+
+    return parsedName?.includes(parsedSearch);
+  });
+
+  if (router.isFallback) {
+    return <Loading />;
   }
 
-  const filterUnMember = countries.filter((c) => c.unMember);
-
   return (
-    <>
-      <h1>{countries.length} countries!!</h1>
-      <button onClick={() => setState({ ...state, unMember: !state.unMember })}>
-        click
-      </button>
-      {state.unMember ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          }}
-        >
-          {filterUnMember?.map((country: ApiCountry) => (
-            <div key={country.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
-                onClick={() => onClick(country.cca3)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
-              >
-                <h1>{country?.name?.common}</h1>
-                <p>{country?.population}</p>
-                <p>{country?.flag}</p>
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          }}
-        >
-          {countries?.map((country: ApiCountry) => (
-            <div key={country.cca3} style={{ width: "100%", height: "100%" }}>
-              <button
-                className="hover:bg-pink-100"
-                onClick={() => onClick(country.cca3)}
-                style={{ width: "100%", height: "100%", cursor: "pointer" }}
-              >
-                <h1>{country?.name?.common}</h1>
-                <p>{country?.population}</p>
-                <p>{country?.flag}</p>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+    <Container>
+      <Head>
+        <title>Where to next?</title>
+        <link rel="icon" href="/world.png" />
+        <meta name="description" content={`Find the next country to visit`} />
+        <meta
+          property="og:title"
+          content={`Where to Next? Using the Rest Countries API`}
+        />
+        <meta
+          property="og:description"
+          content={`Find the next country to visit`}
+        />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div>
+        <Banner onChange={onChange} />
+        <HomeContentContainer>
+          <ListGrid>
+            {filterBySearch?.map((country: ApiCountry) => (
+              <li key={country.cca3}>
+                <Link href={`/${country.cca3.toLowerCase()}`} passHref>
+                  <CountryCard country={country} />
+                </Link>
+              </li>
+            ))}
+          </ListGrid>
+        </HomeContentContainer>
+      </div>
+    </Container>
   );
 }
 
 export default Home;
 
 export const getStaticProps: GetStaticProps = async () => {
-  const response = await fetch("https://restcountries.com/v3.1/all");
-  const data = await response.json();
+  const response = fetch("https://restcountries.com/v3.1/all")
+    .then(async (response) => {
+      const isJson = response.headers
+        .get("content-type")
+        ?.includes("application/json");
+      const data = isJson ? await response.json() : null;
 
-  const allCountries: ApiCountry[] = data.map((country: ApiCountry) => {
+      if (!response.ok) {
+        const error = (data && data.message) || response.status;
+        return Promise.reject(error);
+      }
+
+      return data;
+    })
+    .catch((error) => {
+      console.error("There was an error!", error);
+      return null;
+    });
+
+  const data = await response;
+
+  const allCountries: ApiCountry[] = data?.map((country: ApiCountry) => {
     return {
       cca3: country.cca3,
       name: country.name,
       flag: country.flag,
+      flags: country.flags,
       population: country.population,
       capital: country.capital ?? [],
       unMember: country.unMember,
