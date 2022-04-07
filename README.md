@@ -28,7 +28,7 @@ Install dependencies
 yarn install
 ```
 
-Run the app
+Run the app in development mode
 
 ```
 yarn dev
